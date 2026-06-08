@@ -683,7 +683,6 @@ function renderSimTeamRow(g, t) {
   const rank = groupRanks[g][t];
   const rbClass = rank===1?'rb-1':rank===2?'rb-2':rank===3?'rb-3':'rb-4';
   const rbLabel = rank<=4?rank:'?';
-  const isThird = rank === 3;
   return `
     <div class="sim-team-row" id="str-${g}-${t}">
       <div class="sim-rank-badge ${rbClass}">${rbLabel}</div>
@@ -694,7 +693,7 @@ function renderSimTeamRow(g, t) {
       <div class="sim-pos-btns">
         <button class="pos-btn p1${rank===1?' active':''}" onclick="setRank('${g}','${t}',1)" title="1º Lugar">1º</button>
         <button class="pos-btn p2${rank===2?' active':''}" onclick="setRank('${g}','${t}',2)" title="2º Lugar">2º</button>
-        ${isThird ? `<button class="pos-btn p3${rank===3?' active':''}" onclick="setRank('${g}','${t}',3)" title="3º Lugar">3º</button>` : ''}
+        <button class="pos-btn p3${rank===3?' active':''}" onclick="setRank('${g}','${t}',3)" title="3º Lugar">3º</button>
       </div>
     </div>
   `;
