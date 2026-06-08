@@ -284,8 +284,8 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
   <!-- SIM: GRUPOS -->
   <div class="sim-panel active" id="sim-panel-grupos">
     <div class="sim-note">
-      <strong>Como usar:</strong> Selecione os classificados de cada grupo clicando em <strong>1º</strong> e <strong>2º</strong> para cada seleção.
-      Os terceiros colocados aparecem abaixo para você escolher os 8 que avançam.
+      <strong>Como usar:</strong> Selecione os classificados de cada grupo clicando em <strong>1º</strong>, <strong>2º</strong> e <strong>3º</strong> para cada seleção.
+      Os 8 melhores terceiros colocados aparecem abaixo para você escolher.
       Depois vá na aba <strong>Mata-Mata</strong> para simular os duelos eliminatórios.
     </div>
     <div class="sim-section-title">Selecione os Classificados</div>
@@ -683,6 +683,7 @@ function renderSimTeamRow(g, t) {
   const rank = groupRanks[g][t];
   const rbClass = rank===1?'rb-1':rank===2?'rb-2':rank===3?'rb-3':'rb-4';
   const rbLabel = rank<=4?rank:'?';
+  const isThird = rank === 3;
   return `
     <div class="sim-team-row" id="str-${g}-${t}">
       <div class="sim-rank-badge ${rbClass}">${rbLabel}</div>
@@ -693,6 +694,7 @@ function renderSimTeamRow(g, t) {
       <div class="sim-pos-btns">
         <button class="pos-btn p1${rank===1?' active':''}" onclick="setRank('${g}','${t}',1)" title="1º Lugar">1º</button>
         <button class="pos-btn p2${rank===2?' active':''}" onclick="setRank('${g}','${t}',2)" title="2º Lugar">2º</button>
+        ${isThird ? `<button class="pos-btn p3${rank===3?' active':''}" onclick="setRank('${g}','${t}',3)" title="3º Lugar">3º</button>` : ''}
       </div>
     </div>
   `;
@@ -709,11 +711,6 @@ function setRank(g, t, pos) {
     teams.forEach(ot => { if (groupRanks[g][ot] === pos) groupRanks[g][ot] = 4; });
     groupRanks[g][t] = pos;
   }
-  // Assign 3rd/4th to remaining
-  const unranked = teams.filter(ot => groupRanks[g][ot] === 3 || groupRanks[g][ot] === 4);
-  const ranked = teams.filter(ot => groupRanks[g][ot] === 1 || groupRanks[g][ot] === 2);
-  const available = teams.filter(ot => !ranked.includes(ot));
-  available.forEach((ot, i) => { groupRanks[g][ot] = i + 3; });
 
   // Re-render this group
   const grid = document.getElementById('sim-groups-grid');
@@ -722,13 +719,13 @@ function setRank(g, t, pos) {
   grpEl[gIdx].innerHTML = `
     <div class="sim-grp-hdr">
       <span class="sim-grp-lbl">Grupo ${g}</span>
-      <span class="sim-grp-hint">Clique 1º/2º para classificar</span>
+      <span class="sim-grp-hint">Clique 1º/2º/3º para classificar</span>
     </div>
     ${[...GROUPS[g]].sort((a,b) => groupRanks[g][a] - groupRanks[g][b]).map(t => renderSimTeamRow(g, t)).join('')}
   `;
 
-  // Remove from thirds if now ranked 1/2
-  if (pos <= 2) selectedThirds = selectedThirds.filter(id => id !== t);
+  // Remove from thirds if now ranked 1/2/3
+  if (pos <= 3) selectedThirds = selectedThirds.filter(id => id !== t);
   renderThirdsSection();
 }
 
@@ -748,10 +745,9 @@ function renderThirdsSection() {
 
   el.innerHTML = `
     <div class="third-section">
-      <div class="sim-section-title" style="margin-bottom:12px">Melhores 3ºs Colocados</div>
+      <div class="sim-section-title" style="margin-bottom:12px">3º Colocado de Cada Grupo</div>
       <p class="third-hint">
-        Dos <strong>${thirds.length}</strong> terceiros colocados, os <strong>8 melhores</strong> avançam para o mata-mata.
-        Selecione as 8 seleções que você acha que vão se classificar:
+        Cada grupo tem um <strong>3º colocado</strong> definido. Selecione os 8 melhores para avançar:
       </p>
       <div class="thirds-grid">
         ${thirds.map(({team:t, group:g}) => {
