@@ -185,8 +185,45 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
 .sim-note{background:rgba(196,146,40,.07);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--gray2);margin-bottom:20px;line-height:1.6}
 .sim-note strong{color:var(--gold2)}
 
+/* SCORES (jogos encerrados) */
+.match-card.played{border-left:3px solid var(--gold)}
+.match-card.played.bra-game{border-left:3px solid var(--green)}
+.m-team.winner .m-team-name{color:var(--gold3)}
+.m-score{display:flex;align-items:center;gap:8px;flex-shrink:0;padding:0 2px}
+.m-score-n{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:var(--gray2);min-width:22px;text-align:center}
+.m-score-n.win{color:var(--gold2)}
+.m-score-x{font-size:14px;color:var(--gray)}
+
+/* STANDINGS */
+.standings-banner{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px}
+.sb-item{display:flex;flex-direction:column;padding-right:16px;border-right:1px solid var(--border)}
+.sb-item strong{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold2);line-height:1}
+.sb-item span{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray);margin-top:3px}
+.sb-legend{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:11px;color:var(--gray2)}
+.leg-dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:middle}
+.leg-q{background:var(--green)}
+.leg-3{background:var(--gold)}
+.standings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.st-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.st-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;background:linear-gradient(135deg,rgba(196,146,40,.2),rgba(196,146,40,.04));border-bottom:1px solid var(--border);font-weight:700;font-size:13px;letter-spacing:1px;color:var(--gray2);text-transform:uppercase}
+.st-letter{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold2);line-height:1}
+.st-table{width:100%;border-collapse:collapse;font-size:13px}
+.st-table th{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;padding:8px 4px;text-align:center;border-bottom:1px solid var(--border)}
+.st-table td{padding:9px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04)}
+.st-table tr:last-child td{border-bottom:none}
+.st-pos{width:26px;color:var(--gray);font-weight:700}
+.st-team{text-align:left!important;display:flex;align-items:center;gap:9px;padding-left:10px!important}
+.st-team span{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-pts{font-weight:800;color:var(--gold2)}
+.st-table tr.zone-q{position:relative}
+.st-table tr.zone-q .st-pos{box-shadow:inset 3px 0 0 var(--green)}
+.st-table tr.zone-3 .st-pos{box-shadow:inset 3px 0 0 var(--gold)}
+.st-pending{padding:10px;text-align:center;font-size:11px;color:var(--gray);font-style:italic;border-top:1px solid var(--border)}
+
 /* RESPONSIVE */
 @media(max-width:768px){
+  .standings-grid{grid-template-columns:1fr}
+  .sb-legend{margin-left:0;width:100%;justify-content:flex-start}
   .match-card{grid-template-columns:70px 1fr;grid-template-rows:auto auto}
   .m-meta{grid-column:1/-1;text-align:left;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .bcast-tags{justify-content:flex-start}
@@ -255,6 +292,7 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
   </div>
   <nav>
     <button class="nav-btn active" onclick="switchTab('grupos')"><span class="nav-icon">⚽</span>Grupos</button>
+    <button class="nav-btn" onclick="switchTab('classificacao')"><span class="nav-icon">📊</span>Classificação</button>
     <button class="nav-btn" onclick="switchTab('jogos')"><span class="nav-icon">📅</span>Jogos</button>
     <button class="nav-btn" onclick="switchTab('simulador')"><span class="nav-icon">🏆</span>Simulador</button>
   </nav>
@@ -266,6 +304,13 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
 <section id="s-grupos" class="sec active">
   <div class="sec-title">Grupos da Primeira Fase</div>
   <div class="groups-grid" id="groups-grid"></div>
+</section>
+
+<!-- ==================== CLASSIFICAÇÃO ==================== -->
+<section id="s-classificacao" class="sec">
+  <div class="sec-title">Classificação de Momento</div>
+  <div class="standings-banner" id="standings-banner"></div>
+  <div class="standings-grid" id="standings-grid"></div>
 </section>
 
 <!-- ==================== JOGOS ==================== -->
@@ -340,21 +385,22 @@ const GROUPS = {
 };
 
 // broadcast: T=todos, S=semi(sem SBT/N Sports), C=só CazéTV, D=a definir (MD3)
-// [date, time, grp, t1, t2, venue, city, bc, md, simultaneous?]
+// [date, time, grp, t1, t2, venue, city, bc, md, simultaneous?, score?]
+// score = [golsT1, golsT2] quando o jogo já foi disputado; ausente/null = a jogar
 const RAW = [
   // MD1
-  ['2026-06-11','16:00','A','mex','rsa','Estadio Azteca','Cidade do México','T',1,0],
-  ['2026-06-11','23:00','A','kor','cze','Estadio Akron','Guadalajara','C',1,0],
-  ['2026-06-12','16:00','B','can','bih','BMO Field','Toronto','C',1,0],
-  ['2026-06-12','22:00','D','usa','par','SoFi Stadium','Los Angeles','T',1,0],
-  ['2026-06-13','01:00','D','aus','tur','BC Place','Vancouver','S',1,0],
-  ['2026-06-13','16:00','B','qat','sui',"Levi's Stadium",'San Francisco','C',1,0],
-  ['2026-06-13','19:00','C','bra','mar','MetLife Stadium','Nova Jersey','T',1,0],
-  ['2026-06-13','22:00','C','hai','sco','Gillette Stadium','Boston','C',1,0],
-  ['2026-06-14','14:00','E','ger','cur','NRG Stadium','Houston','C',1,0],
-  ['2026-06-14','17:00','F','ned','jpn','AT&T Stadium','Dallas','T',1,0],
-  ['2026-06-14','20:00','E','civ','ecu','Lincoln Financial','Philadelphia','S',1,0],
-  ['2026-06-14','23:00','F','swe','tun','Estadio BBVA','Monterrey','S',1,0],
+  ['2026-06-11','16:00','A','mex','rsa','Estadio Azteca','Cidade do México','T',1,0,[2,0]],
+  ['2026-06-11','23:00','A','kor','cze','Estadio Akron','Guadalajara','C',1,0,[2,1]],
+  ['2026-06-12','16:00','B','can','bih','BMO Field','Toronto','C',1,0,[1,1]],
+  ['2026-06-12','22:00','D','usa','par','SoFi Stadium','Los Angeles','T',1,0,[4,1]],
+  ['2026-06-13','01:00','D','aus','tur','BC Place','Vancouver','S',1,0,[2,0]],
+  ['2026-06-13','16:00','B','qat','sui',"Levi's Stadium",'San Francisco','C',1,0,[1,1]],
+  ['2026-06-13','19:00','C','bra','mar','MetLife Stadium','Nova Jersey','T',1,0,[1,1]],
+  ['2026-06-13','22:00','C','hai','sco','Gillette Stadium','Boston','C',1,0,[0,1]],
+  ['2026-06-14','14:00','E','ger','cur','NRG Stadium','Houston','C',1,0,[7,1]],
+  ['2026-06-14','17:00','F','ned','jpn','AT&T Stadium','Dallas','T',1,0,[2,2]],
+  ['2026-06-14','20:00','E','civ','ecu','Lincoln Financial','Philadelphia','S',1,0,[1,0]],
+  ['2026-06-14','23:00','F','swe','tun','Estadio BBVA','Monterrey','S',1,0,[5,1]],
   ['2026-06-15','13:00','H','esp','cpv','Mercedes-Benz Stadium','Atlanta','C',1,0],
   ['2026-06-15','16:00','G','bel','egy','Lumen Field','Seattle','S',1,0],
   ['2026-06-15','19:00','H','ksa','uru','Hard Rock Stadium','Miami','T',1,0],
@@ -507,6 +553,7 @@ function switchTab(tab) {
     if (b.getAttribute('onclick').includes(tab)) b.classList.add('active');
   });
   if (tab === 'simulador') renderSimBracket();
+  if (tab === 'classificacao') renderStandings();
 }
 
 function switchSimTab(tab) {
@@ -630,24 +677,30 @@ function renderScheduleList() {
 }
 
 function renderMatchCard(m) {
-  const [date, time, grp, t1, t2, venue, city, bc, md, sim] = m;
+  const [date, time, grp, t1, t2, venue, city, bc, md, sim, score] = m;
   const isBra = t1 === 'bra' || t2 === 'bra';
   const tm1 = TEAMS[t1], tm2 = TEAMS[t2];
   const simBadge = sim ? `<span class="simultaneous-badge">⚡ Simultâneo</span>` : '';
+  const played = Array.isArray(score);
+  const win1 = played && score[0] > score[1];
+  const win2 = played && score[1] > score[0];
+  const centerEl = played
+    ? `<div class="m-score"><span class="m-score-n${win1?' win':''}">${score[0]}</span><span class="m-score-x">×</span><span class="m-score-n${win2?' win':''}">${score[1]}</span></div>`
+    : `<div class="m-vs">×</div>`;
   return `
-    <div class="match-card${isBra?' bra-game':''}${md===3?' md3':''}">
+    <div class="match-card${isBra?' bra-game':''}${md===3?' md3':''}${played?' played':''}">
       <div class="m-time-col">
         <div class="m-time">${time}</div>
-        <div class="m-time-label">Horário de Brasília</div>
+        <div class="m-time-label">${played?'Encerrado':'Horário de Brasília'}</div>
         <div class="m-grp-badge">GRUPO ${grp}</div>
       </div>
       <div class="m-teams">
-        <div class="m-team">
+        <div class="m-team${win1?' winner':''}">
           ${flagImg(tm1.f)}
           <span class="m-team-name">${tm1.n}</span>
         </div>
-        <div class="m-vs">×</div>
-        <div class="m-team right">
+        ${centerEl}
+        <div class="m-team right${win2?' winner':''}">
           ${flagImg(tm2.f)}
           <span class="m-team-name">${tm2.n}</span>
         </div>
@@ -660,6 +713,71 @@ function renderMatchCard(m) {
       </div>
     </div>
   `;
+}
+
+// ===========================
+// STANDINGS (Classificação)
+// ===========================
+function computeStandings(g) {
+  const teams = GROUPS[g];
+  const tbl = {};
+  teams.forEach(t => tbl[t] = {t, p:0, j:0, v:0, e:0, d:0, gp:0, gc:0});
+  RAW.forEach(m => {
+    const [date, time, grp, t1, t2, venue, city, bc, md, sim, score] = m;
+    if (grp !== g || !Array.isArray(score)) return;
+    const [a, b] = score;
+    const r1 = tbl[t1], r2 = tbl[t2];
+    r1.j++; r2.j++;
+    r1.gp += a; r1.gc += b; r2.gp += b; r2.gc += a;
+    if (a > b) { r1.v++; r2.d++; r1.p += 3; }
+    else if (b > a) { r2.v++; r1.d++; r2.p += 3; }
+    else { r1.e++; r2.e++; r1.p++; r2.p++; }
+  });
+  return teams.map(t => tbl[t]).sort((x, y) =>
+    y.p - x.p || (y.gp - y.gc) - (x.gp - x.gc) || y.gp - x.gp || TEAMS[x.t].n.localeCompare(TEAMS[y.t].n)
+  );
+}
+
+function renderStandings() {
+  const playedCount = RAW.filter(m => Array.isArray(m[10])).length;
+  const totalGoals = RAW.reduce((s, m) => Array.isArray(m[10]) ? s + m[10][0] + m[10][1] : s, 0);
+  document.getElementById('standings-banner').innerHTML = `
+    <div class="sb-item"><strong>${playedCount}</strong><span>Jogos disputados</span></div>
+    <div class="sb-item"><strong>${totalGoals}</strong><span>Gols marcados</span></div>
+    <div class="sb-item"><strong>1ª Rodada</strong><span>Fase atual · até 17/jun</span></div>
+    <div class="sb-legend">
+      <span class="leg-dot leg-q"></span> Classifica (1º e 2º)
+      <span class="leg-dot leg-3"></span> 3º (pode avançar)
+    </div>
+  `;
+  const grid = document.getElementById('standings-grid');
+  grid.innerHTML = Object.keys(GROUPS).map(g => {
+    const rows = computeStandings(g);
+    const anyPlayed = rows.some(r => r.j > 0);
+    return `
+      <div class="st-card">
+        <div class="st-hdr"><span class="st-letter">${g}</span><span>Grupo ${g}</span></div>
+        <table class="st-table">
+          <thead><tr><th class="st-pos">#</th><th class="st-team">Seleção</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
+          <tbody>
+            ${rows.map((r, i) => {
+              const sg = r.gp - r.gc;
+              const zoneCls = i < 2 ? 'zone-q' : i === 2 ? 'zone-3' : '';
+              return `
+                <tr class="${zoneCls}">
+                  <td class="st-pos">${i+1}</td>
+                  <td class="st-team">${flagImg(TEAMS[r.t].f)}<span>${TEAMS[r.t].n}</span></td>
+                  <td class="st-pts">${r.p}</td>
+                  <td>${r.j}</td><td>${r.v}</td><td>${r.e}</td><td>${r.d}</td>
+                  <td>${sg>0?'+':''}${sg}</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        ${!anyPlayed ? '<div class="st-pending">Aguardando jogos</div>' : ''}
+      </div>
+    `;
+  }).join('');
 }
 
 // ===========================
@@ -984,6 +1102,7 @@ function resetBracket() {
 renderGroups();
 renderScheduleFilters();
 renderScheduleList();
+renderStandings();
 renderSimGroups();
 switchTab('grupos');
 </script>
