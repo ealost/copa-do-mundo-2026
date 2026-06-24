@@ -36,7 +36,8 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
   const url = new URL(req.url, `http://${req.headers.host}`);
-  const args = ROUTES[url.pathname];
+  const matchIdMatch = url.pathname.match(/^\/match\/(\d+)$/);
+  const args = matchIdMatch ? ['match', matchIdMatch[1]] : ROUTES[url.pathname];
   if (!args) {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ status: 'error', code: 'not_found', message: 'unknown route' }));

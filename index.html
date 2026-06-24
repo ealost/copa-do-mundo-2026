@@ -226,7 +226,8 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
 .live-empty{padding:30px;text-align:center;color:var(--gray);font-size:13px;background:var(--s1);border:1px solid var(--border);border-radius:12px}
 .live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
 .live-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px}
-.live-card.is-live{border-color:var(--green)}
+.live-card.is-live{grid-column:1/-1;border:2px solid var(--green);padding:22px;background:linear-gradient(135deg,rgba(0,146,62,.08),var(--s1));box-shadow:0 0 28px rgba(0,146,62,.25);animation:liveGlow 2.4s infinite}
+@keyframes liveGlow{0%,100%{box-shadow:0 0 18px rgba(0,146,62,.18)}50%{box-shadow:0 0 32px rgba(0,146,62,.4)}}
 .live-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .live-league{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray)}
 .live-time-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray2);background:var(--s2);border-radius:6px;padding:3px 8px}
@@ -234,10 +235,29 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
 @keyframes liveBlink{0%,100%{opacity:1}50%{opacity:.55}}
 .live-teams{display:flex;flex-direction:column;gap:6px}
 .live-team{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.live-card.is-live .live-team{font-size:19px}
 .live-team-name{flex:1}
 .live-team .team-flag{width:20px;height:14px;border-radius:2px;flex-shrink:0}
+.live-card.is-live .live-team .team-flag{width:28px;height:20px}
 .live-team-score{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold2)}
+.live-card.is-live .live-team-score{font-size:34px}
 .live-round{margin-top:8px;font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+.live-detail{margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.live-detail-section{margin-bottom:16px}
+.live-detail-section:last-child{margin-bottom:0}
+.live-detail-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gold2);margin-bottom:8px}
+.live-event-row{display:flex;align-items:center;gap:9px;font-size:13px;padding:4px 0;color:var(--gray2)}
+.live-event-min{color:var(--gold2);font-weight:700;min-width:40px;font-family:'Bebas Neue',sans-serif;font-size:15px}
+.live-event-icon{width:16px;text-align:center}
+.live-event-player{color:var(--white);font-weight:600}
+.live-event-team{color:var(--gray);font-size:11px}
+.live-stat-row{margin-bottom:12px}
+.live-stat-labels{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--white);margin-bottom:5px}
+.live-stat-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--s2)}
+.live-stat-bar-home{background:var(--gold)}
+.live-stat-bar-away{background:var(--gray2)}
+.live-stat-name{text-align:center;font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.live-detail-loading{font-size:12px;color:var(--gray);font-style:italic}
 
 /* RESPONSIVE */
 @media(max-width:768px){
@@ -671,6 +691,70 @@ function liveTeamFlag(name) {
   return code ? flagImg(TEAMS[code].f) : '';
 }
 
+async function fetchMatchDetails(id) {
+  try {
+    const resp = await fetch(`${getLiveBase()}/match/${id}`, { cache: 'no-store' });
+    if (!resp.ok) return null;
+    const json = await resp.json();
+    if (json.status !== 'ok') return null;
+    return json.data;
+  } catch (e) {
+    return null;
+  }
+}
+
+function eventIcon(type) {
+  const t = (type || '').toLowerCase();
+  if (t.includes('goal')) return '⚽';
+  if (t.includes('yellow')) return '🟨';
+  if (t.includes('red')) return '🟥';
+  if (t.includes('sub')) return '🔄';
+  return '•';
+}
+
+function renderEventRows(events) {
+  return events.map(e => `
+    <div class="live-event-row">
+      <span class="live-event-min">${e.display_minute || (e.minute != null ? e.minute + "'" : '')}</span>
+      <span class="live-event-icon">${eventIcon(e.type || e.event_type)}</span>
+      <span class="live-event-player">${e.player || '?'}</span>
+      ${e.team ? `<span class="live-event-team">${e.team}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderStatRows(stats) {
+  return stats.map(s => {
+    const hv = parseFloat(s.home_value) || 0;
+    const av = parseFloat(s.away_value) || 0;
+    const total = hv + av || 1;
+    const hp = (hv / total * 100).toFixed(0);
+    return `
+      <div class="live-stat-row">
+        <div class="live-stat-labels"><span>${s.home_value}</span><span>${s.away_value}</span></div>
+        <div class="live-stat-bar">
+          <div class="live-stat-bar-home" style="width:${hp}%"></div>
+          <div class="live-stat-bar-away" style="width:${100 - hp}%"></div>
+        </div>
+        <div class="live-stat-name">${s.label}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMatchDetailSections(detail) {
+  const events = (detail.events || []).slice().sort((a, b) => (a.minute || 0) - (b.minute || 0));
+  const goals = events.filter(e => (e.type || e.event_type || '').toLowerCase().includes('goal'));
+  const cards = events.filter(e => (e.type || e.event_type || '').toLowerCase().includes('card'));
+  const stats = detail.statistics || [];
+  if (!goals.length && !cards.length && !stats.length) return '<div class="live-detail-loading">Sem detalhes adicionais disponíveis.</div>';
+  return `
+    ${goals.length ? `<div class="live-detail-section"><div class="live-detail-title">⚽ Gols</div>${renderEventRows(goals)}</div>` : ''}
+    ${cards.length ? `<div class="live-detail-section"><div class="live-detail-title">🟨 Cartões</div>${renderEventRows(cards)}</div>` : ''}
+    ${stats.length ? `<div class="live-detail-section"><div class="live-detail-title">📊 Estatísticas</div>${renderStatRows(stats)}</div>` : ''}
+  `;
+}
+
 function renderLiveGrid(matches) {
   const gridEl = document.getElementById('live-grid');
   if (!matches.length) {
@@ -699,9 +783,17 @@ function renderLiveGrid(matches) {
           </div>
         </div>
         ${m.round ? `<div class="live-round">${m.round}</div>` : ''}
+        ${isLive ? `<div class="live-detail" id="match-detail-${m.id}"><div class="live-detail-loading">Carregando detalhes...</div></div>` : ''}
       </div>
     `;
   }).join('');
+
+  matches.filter(m => m.status === 'live').forEach(async m => {
+    const detail = await fetchMatchDetails(m.id);
+    const el = document.getElementById(`match-detail-${m.id}`);
+    if (!el) return;
+    el.innerHTML = detail ? renderMatchDetailSections(detail) : '<div class="live-detail-loading">Sem detalhes adicionais disponíveis.</div>';
+  });
 }
 
 function startLivePolling() {
