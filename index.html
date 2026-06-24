@@ -220,9 +220,29 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
 .st-table tr.zone-3 .st-pos{box-shadow:inset 3px 0 0 var(--gold)}
 .st-pending{padding:10px;text-align:center;font-size:11px;color:var(--gray);font-style:italic;border-top:1px solid var(--border)}
 
+.live-status{margin-bottom:12px;font-size:12px}
+.live-loading,.live-updated{color:var(--gray2)}
+.live-error{color:var(--red)}
+.live-empty{padding:30px;text-align:center;color:var(--gray);font-size:13px;background:var(--s1);border:1px solid var(--border);border-radius:12px}
+.live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.live-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px}
+.live-card.is-live{border-color:var(--green)}
+.live-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.live-league{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray)}
+.live-time-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray2);background:var(--s2);border-radius:6px;padding:3px 8px}
+.live-time-badge.pulsing{color:var(--bg);background:var(--green);animation:liveBlink 1.6s infinite}
+@keyframes liveBlink{0%,100%{opacity:1}50%{opacity:.55}}
+.live-teams{display:flex;flex-direction:column;gap:6px}
+.live-team{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.live-team-name{flex:1}
+.live-team .team-flag{width:20px;height:14px;border-radius:2px;flex-shrink:0}
+.live-team-score{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold2)}
+.live-round{margin-top:8px;font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+
 /* RESPONSIVE */
 @media(max-width:768px){
   .standings-grid{grid-template-columns:1fr}
+  .live-grid{grid-template-columns:1fr}
   .sb-legend{margin-left:0;width:100%;justify-content:flex-start}
   .match-card{grid-template-columns:70px 1fr;grid-template-rows:auto auto}
   .m-meta{grid-column:1/-1;text-align:left;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -293,6 +313,7 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
   <nav>
     <button class="nav-btn active" onclick="switchTab('grupos')"><span class="nav-icon">⚽</span>Grupos</button>
     <button class="nav-btn" onclick="switchTab('classificacao')"><span class="nav-icon">📊</span>Classificação</button>
+    <button class="nav-btn" onclick="switchTab('live')"><span class="nav-icon">🔴</span>Live Scores</button>
     <button class="nav-btn" onclick="switchTab('jogos')"><span class="nav-icon">📅</span>Jogos</button>
     <button class="nav-btn" onclick="switchTab('simulador')"><span class="nav-icon">🏆</span>Simulador</button>
   </nav>
@@ -311,6 +332,13 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
   <div class="sec-title">Classificação de Momento</div>
   <div class="standings-banner" id="standings-banner"></div>
   <div class="standings-grid" id="standings-grid"></div>
+</section>
+
+<!-- ==================== LIVE SCORES ==================== -->
+<section id="s-live" class="sec">
+  <div class="sec-title">Live Scores</div>
+  <div class="live-status" id="live-status"></div>
+  <div class="live-grid" id="live-grid"></div>
 </section>
 
 <!-- ==================== JOGOS ==================== -->
@@ -401,42 +429,42 @@ const RAW = [
   ['2026-06-14','17:00','F','ned','jpn','AT&T Stadium','Dallas','T',1,0,[2,2]],
   ['2026-06-14','20:00','E','civ','ecu','Lincoln Financial','Philadelphia','S',1,0,[1,0]],
   ['2026-06-14','23:00','F','swe','tun','Estadio BBVA','Monterrey','S',1,0,[5,1]],
-  ['2026-06-15','13:00','H','esp','cpv','Mercedes-Benz Stadium','Atlanta','C',1,0],
-  ['2026-06-15','16:00','G','bel','egy','Lumen Field','Seattle','S',1,0],
-  ['2026-06-15','19:00','H','ksa','uru','Hard Rock Stadium','Miami','T',1,0],
-  ['2026-06-15','22:00','G','irn','nzl','SoFi Stadium','Los Angeles','C',1,0],
-  ['2026-06-16','16:00','I','fra','sen','MetLife Stadium','Nova Jersey','T',1,0],
-  ['2026-06-16','19:00','I','irq','nor','Gillette Stadium','Boston','C',1,0],
-  ['2026-06-16','22:00','J','arg','alg','Arrowhead Stadium','Kansas City','C',1,0],
-  ['2026-06-17','01:00','J','aut','jor',"Levi's Stadium",'San Francisco','S',1,0],
-  ['2026-06-17','14:00','K','por','cod','NRG Stadium','Houston','C',1,0],
-  ['2026-06-17','17:00','L','eng','cro','AT&T Stadium','Dallas','T',1,0],
-  ['2026-06-17','20:00','L','gha','pan','BMO Field','Toronto','C',1,0],
-  ['2026-06-17','23:00','K','uzb','col','Estadio Azteca','Cidade do México','S',1,0],
+  ['2026-06-15','13:00','H','esp','cpv','Mercedes-Benz Stadium','Atlanta','C',1,0,[0,0]],
+  ['2026-06-15','16:00','G','bel','egy','Lumen Field','Seattle','S',1,0,[1,1]],
+  ['2026-06-15','19:00','H','ksa','uru','Hard Rock Stadium','Miami','T',1,0,[1,1]],
+  ['2026-06-15','22:00','G','irn','nzl','SoFi Stadium','Los Angeles','C',1,0,[2,2]],
+  ['2026-06-16','16:00','I','fra','sen','MetLife Stadium','Nova Jersey','T',1,0,[3,1]],
+  ['2026-06-16','19:00','I','irq','nor','Gillette Stadium','Boston','C',1,0,[1,4]],
+  ['2026-06-16','22:00','J','arg','alg','Arrowhead Stadium','Kansas City','C',1,0,[3,0]],
+  ['2026-06-17','01:00','J','aut','jor',"Levi's Stadium",'San Francisco','S',1,0,[3,1]],
+  ['2026-06-17','14:00','K','por','cod','NRG Stadium','Houston','C',1,0,[1,1]],
+  ['2026-06-17','17:00','L','eng','cro','AT&T Stadium','Dallas','T',1,0,[4,2]],
+  ['2026-06-17','20:00','L','gha','pan','BMO Field','Toronto','C',1,0,[1,0]],
+  ['2026-06-17','23:00','K','uzb','col','Estadio Azteca','Cidade do México','S',1,0,[1,3]],
   // MD2
-  ['2026-06-18','13:00','A','cze','rsa','Mercedes-Benz Stadium','Atlanta','C',2,0],
-  ['2026-06-18','16:00','B','sui','bih','SoFi Stadium','Los Angeles','T',2,0],
-  ['2026-06-18','19:00','B','can','qat','BC Place','Vancouver','C',2,0],
-  ['2026-06-18','22:00','A','mex','kor','Estadio Akron','Guadalajara','S',2,0],
-  ['2026-06-19','16:00','D','usa','aus','Lumen Field','Seattle','C',2,0],
-  ['2026-06-19','19:00','C','sco','mar','Gillette Stadium','Boston','C',2,0],
-  ['2026-06-19','21:30','C','bra','hai','Lincoln Financial','Philadelphia','T',2,0],
-  ['2026-06-20','00:00','D','tur','par',"Levi's Stadium",'San Francisco','S',2,0],
-  ['2026-06-20','14:00','F','ned','swe','NRG Stadium','Houston','C',2,0],
-  ['2026-06-20','17:00','E','ger','civ','BMO Field','Toronto','T',2,0],
-  ['2026-06-20','21:00','E','ecu','cur','Arrowhead Stadium','Kansas City','C',2,0],
-  ['2026-06-21','01:00','F','tun','jpn','Estadio BBVA','Monterrey','S',2,0],
-  ['2026-06-21','13:00','H','esp','ksa','Mercedes-Benz Stadium','Atlanta','C',2,0],
-  ['2026-06-21','16:00','G','bel','irn','SoFi Stadium','Los Angeles','C',2,0],
-  ['2026-06-21','19:00','H','uru','cpv','Hard Rock Stadium','Miami','T',2,0],
-  ['2026-06-21','22:00','G','nzl','egy','BC Place','Vancouver','S',2,0],
-  ['2026-06-22','14:00','J','arg','aut','AT&T Stadium','Dallas','T',2,0],
-  ['2026-06-22','18:00','I','fra','irq','Lincoln Financial','Philadelphia','C',2,0],
-  ['2026-06-22','21:00','I','sen','nor','MetLife Stadium','Nova Jersey','S',2,0],
-  ['2026-06-23','00:00','J','jor','alg',"Levi's Stadium",'San Francisco','S',2,0],
-  ['2026-06-23','14:00','K','por','uzb','NRG Stadium','Houston','C',2,0],
-  ['2026-06-23','17:00','L','eng','gha','Gillette Stadium','Boston','T',2,0],
-  ['2026-06-23','20:00','L','pan','cro','BMO Field','Toronto','C',2,0],
+  ['2026-06-18','13:00','A','cze','rsa','Mercedes-Benz Stadium','Atlanta','C',2,0,[1,1]],
+  ['2026-06-18','16:00','B','sui','bih','SoFi Stadium','Los Angeles','T',2,0,[4,1]],
+  ['2026-06-18','19:00','B','can','qat','BC Place','Vancouver','C',2,0,[6,0]],
+  ['2026-06-18','22:00','A','mex','kor','Estadio Akron','Guadalajara','S',2,0,[1,0]],
+  ['2026-06-19','16:00','D','usa','aus','Lumen Field','Seattle','C',2,0,[2,0]],
+  ['2026-06-19','19:00','C','sco','mar','Gillette Stadium','Boston','C',2,0,[0,1]],
+  ['2026-06-19','21:30','C','bra','hai','Lincoln Financial','Philadelphia','T',2,0,[3,0]],
+  ['2026-06-20','00:00','D','tur','par',"Levi's Stadium",'San Francisco','S',2,0,[0,1]],
+  ['2026-06-20','14:00','F','ned','swe','NRG Stadium','Houston','C',2,0,[5,1]],
+  ['2026-06-20','17:00','E','ger','civ','BMO Field','Toronto','T',2,0,[2,1]],
+  ['2026-06-20','21:00','E','ecu','cur','Arrowhead Stadium','Kansas City','C',2,0,[0,0]],
+  ['2026-06-21','01:00','F','tun','jpn','Estadio BBVA','Monterrey','S',2,0,[0,4]],
+  ['2026-06-21','13:00','H','esp','ksa','Mercedes-Benz Stadium','Atlanta','C',2,0,[4,0]],
+  ['2026-06-21','16:00','G','bel','irn','SoFi Stadium','Los Angeles','C',2,0,[0,0]],
+  ['2026-06-21','19:00','H','uru','cpv','Hard Rock Stadium','Miami','T',2,0,[2,2]],
+  ['2026-06-21','22:00','G','nzl','egy','BC Place','Vancouver','S',2,0,[1,3]],
+  ['2026-06-22','14:00','J','arg','aut','AT&T Stadium','Dallas','T',2,0,[2,0]],
+  ['2026-06-22','18:00','I','fra','irq','Lincoln Financial','Philadelphia','C',2,0,[3,0]],
+  ['2026-06-22','21:00','I','sen','nor','MetLife Stadium','Nova Jersey','S',2,0,[2,3]],
+  ['2026-06-23','00:00','J','jor','alg',"Levi's Stadium",'San Francisco','S',2,0,[1,2]],
+  ['2026-06-23','14:00','K','por','uzb','NRG Stadium','Houston','C',2,0,[5,0]],
+  ['2026-06-23','17:00','L','eng','gha','Gillette Stadium','Boston','T',2,0,[0,0]],
+  ['2026-06-23','20:00','L','pan','cro','BMO Field','Toronto','C',2,0,[0,1]],
   ['2026-06-23','23:00','K','col','cod','Estadio Akron','Guadalajara','S',2,0],
   // MD3 (simultaneous)
   ['2026-06-24','16:00','B','sui','can','BC Place','Vancouver','D',3,1],
@@ -554,6 +582,136 @@ function switchTab(tab) {
   });
   if (tab === 'simulador') renderSimBracket();
   if (tab === 'classificacao') renderStandings();
+  if (tab === 'live') startLivePolling(); else stopLivePolling();
+}
+
+// ===========================
+// LIVE SCORES (golazo self-hosted)
+// Usado SÓ na aba Live Scores: jogo em andamento + já encerrados hoje.
+// Classificação/Jogos usam apenas os resultados fixos no RAW (pesquisados manualmente).
+// ===========================
+let liveTimer = null;
+const GOLAZO_BASE = 'https://golazo.badecocloud.com.br';
+
+function getLiveBase() {
+  return GOLAZO_BASE;
+}
+
+function normName(s) {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+}
+
+const GOLAZO_NAME_MAP = {
+  mexico:'mex', southafrica:'rsa', southkorea:'kor', korearepublic:'kor', czechrepublic:'cze', czechia:'cze',
+  canada:'can', bosniaandherzegovina:'bih', bosniaherzegovina:'bih', qatar:'qat', switzerland:'sui',
+  brazil:'bra', morocco:'mar', haiti:'hai', scotland:'sco',
+  unitedstates:'usa', usa:'usa', paraguay:'par', australia:'aus', turkey:'tur', turkiye:'tur',
+  germany:'ger', curacao:'cur', ivorycoast:'civ', cotedivoire:'civ', ecuador:'ecu',
+  netherlands:'ned', holland:'ned', japan:'jpn', sweden:'swe', tunisia:'tun',
+  belgium:'bel', egypt:'egy', iran:'irn', newzealand:'nzl',
+  spain:'esp', capeverde:'cpv', saudiarabia:'ksa', uruguay:'uru',
+  france:'fra', senegal:'sen', iraq:'irq', norway:'nor',
+  argentina:'arg', algeria:'alg', austria:'aut', jordan:'jor',
+  portugal:'por', drcongo:'cod', democraticrepublicofcongo:'cod', congodr:'cod', uzbekistan:'uzb', colombia:'col',
+  england:'eng', croatia:'cro', ghana:'gha', panama:'pan'
+};
+
+function golazoTeamToCode(name) {
+  return GOLAZO_NAME_MAP[normName(name)] || null;
+}
+
+function isTodayBrasilia(isoUtc) {
+  const fmt = d => d.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  return fmt(new Date(isoUtc)) === fmt(new Date());
+}
+
+async function fetchLiveScores() {
+  const base = getLiveBase();
+  const statusEl = document.getElementById('live-status');
+  const gridEl = document.getElementById('live-grid');
+  try {
+    const [liveRes, finRes] = await Promise.allSettled([
+      fetch(`${base}/live`, { cache: 'no-store' }),
+      fetch(`${base}/finished`, { cache: 'no-store' })
+    ]);
+
+    let liveMatches = [];
+    if (liveRes.status === 'fulfilled' && liveRes.value.ok) {
+      const json = await liveRes.value.json();
+      if (json.status === 'ok') liveMatches = json.data || [];
+    }
+
+    let finishedToday = [];
+    if (finRes.status === 'fulfilled' && finRes.value.ok) {
+      const json = await finRes.value.json();
+      if (json.status === 'ok') {
+        finishedToday = (json.data || []).filter(m => m.status === 'finished' && isTodayBrasilia(m.match_time));
+      }
+    }
+
+    const isWC = m => /world cup|copa do mundo/i.test(m.league?.name || '');
+    const seen = new Set(liveMatches.map(m => m.id));
+    let matches = [...liveMatches, ...finishedToday.filter(m => !seen.has(m.id))].filter(isWC);
+
+    if (liveRes.status === 'rejected' && finRes.status === 'rejected') {
+      throw new Error('falha ao conectar');
+    }
+
+    renderLiveGrid(matches);
+    const now = new Date().toLocaleTimeString('pt-BR');
+    statusEl.innerHTML = `<div class="live-updated">🟢 Atualizado às ${now} · ${matches.length} jogo(s)</div>`;
+  } catch (e) {
+    statusEl.innerHTML = `<div class="live-error">⚠️ Não foi possível conectar ao servidor golazo (${e.message}).</div>`;
+    gridEl.innerHTML = '';
+  }
+}
+
+function liveTeamFlag(name) {
+  const code = golazoTeamToCode(name);
+  return code ? flagImg(TEAMS[code].f) : '';
+}
+
+function renderLiveGrid(matches) {
+  const gridEl = document.getElementById('live-grid');
+  if (!matches.length) {
+    gridEl.innerHTML = `<div class="live-empty">Nenhum jogo em andamento agora.</div>`;
+    return;
+  }
+  gridEl.innerHTML = matches.map(m => {
+    const isLive = m.status === 'live';
+    const statusLabel = isLive ? (m.live_time || 'Em andamento') : m.status === 'finished' ? 'Encerrado' : 'A começar';
+    return `
+      <div class="live-card${isLive ? ' is-live' : ''}">
+        <div class="live-card-top">
+          <span class="live-league">${m.league?.name || ''}</span>
+          <span class="live-time-badge${isLive ? ' pulsing' : ''}">${statusLabel}</span>
+        </div>
+        <div class="live-teams">
+          <div class="live-team">
+            ${liveTeamFlag(m.home_team?.name)}
+            <span class="live-team-name">${m.home_team?.name || '?'}</span>
+            <span class="live-team-score">${m.home_score ?? '-'}</span>
+          </div>
+          <div class="live-team">
+            ${liveTeamFlag(m.away_team?.name)}
+            <span class="live-team-name">${m.away_team?.name || '?'}</span>
+            <span class="live-team-score">${m.away_score ?? '-'}</span>
+          </div>
+        </div>
+        ${m.round ? `<div class="live-round">${m.round}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function startLivePolling() {
+  fetchLiveScores();
+  stopLivePolling();
+  liveTimer = setInterval(fetchLiveScores, 15000);
+}
+
+function stopLivePolling() {
+  if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
 }
 
 function switchSimTab(tab) {
@@ -739,12 +897,17 @@ function computeStandings(g) {
 }
 
 function renderStandings() {
-  const playedCount = RAW.filter(m => Array.isArray(m[10])).length;
-  const totalGoals = RAW.reduce((s, m) => Array.isArray(m[10]) ? s + m[10][0] + m[10][1] : s, 0);
+  const played = RAW.filter(m => Array.isArray(m[10]));
+  const playedCount = played.length;
+  const totalGoals = played.reduce((s, m) => s + m[10][0] + m[10][1], 0);
+  const lastMd = played.reduce((max, m) => Math.max(max, m[8]), 0);
+  const lastDate = played.reduce((max, m) => m[0] > max ? m[0] : max, '');
+  const roundLabel = lastMd ? `${lastMd}ª Rodada` : '—';
+  const dateLabel = lastDate ? new Date(lastDate + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}).replace('.', '') : '';
   document.getElementById('standings-banner').innerHTML = `
     <div class="sb-item"><strong>${playedCount}</strong><span>Jogos disputados</span></div>
     <div class="sb-item"><strong>${totalGoals}</strong><span>Gols marcados</span></div>
-    <div class="sb-item"><strong>1ª Rodada</strong><span>Fase atual · até 17/jun</span></div>
+    <div class="sb-item"><strong>${roundLabel}</strong><span>Fase atual · até ${dateLabel}</span></div>
     <div class="sb-legend">
       <span class="leg-dot leg-q"></span> Classifica (1º e 2º)
       <span class="leg-dot leg-3"></span> 3º (pode avançar)
