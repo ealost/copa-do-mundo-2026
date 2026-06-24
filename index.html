@@ -747,7 +747,7 @@ function renderMatchDetailSections(detail) {
   const goals = events.filter(e => (e.type || e.event_type || '').toLowerCase().includes('goal'));
   const cards = events.filter(e => (e.type || e.event_type || '').toLowerCase().includes('card'));
   const stats = detail.statistics || [];
-  if (!goals.length && !cards.length && !stats.length) return '<div class="live-detail-loading">Sem detalhes adicionais disponíveis.</div>';
+  if (!goals.length && !cards.length && !stats.length) return null;
   return `
     ${goals.length ? `<div class="live-detail-section"><div class="live-detail-title">⚽ Gols</div>${renderEventRows(goals)}</div>` : ''}
     ${cards.length ? `<div class="live-detail-section"><div class="live-detail-title">🟨 Cartões</div>${renderEventRows(cards)}</div>` : ''}
@@ -783,7 +783,7 @@ function renderLiveGrid(matches) {
           </div>
         </div>
         ${m.round ? `<div class="live-round">${m.round}</div>` : ''}
-        ${isLive ? `<div class="live-detail" id="match-detail-${m.id}"><div class="live-detail-loading">Carregando detalhes...</div></div>` : ''}
+        ${isLive ? `<div class="live-detail" id="match-detail-${m.id}" style="display:none"></div>` : ''}
       </div>
     `;
   }).join('');
@@ -791,8 +791,11 @@ function renderLiveGrid(matches) {
   matches.filter(m => m.status === 'live').forEach(async m => {
     const detail = await fetchMatchDetails(m.id);
     const el = document.getElementById(`match-detail-${m.id}`);
-    if (!el) return;
-    el.innerHTML = detail ? renderMatchDetailSections(detail) : '<div class="live-detail-loading">Sem detalhes adicionais disponíveis.</div>';
+    if (!el || !detail) return;
+    const html = renderMatchDetailSections(detail);
+    if (!html) return;
+    el.innerHTML = html;
+    el.style.display = '';
   });
 }
 
