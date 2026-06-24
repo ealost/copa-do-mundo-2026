@@ -262,6 +262,8 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
 .live-embed-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gold2);margin-bottom:8px}
 .live-embed-frame{position:relative;width:100%;padding-top:56.25%;border-radius:10px;overflow:hidden;background:#000}
 .live-embed-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.live-watch-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#FF0000;color:#fff;font-weight:700;font-size:14px;text-decoration:none;border-radius:10px;padding:14px;transition:opacity .15s}
+.live-watch-btn:hover{opacity:.85}
 
 /* RESPONSIVE */
 @media(max-width:768px){
@@ -695,11 +697,6 @@ function liveTeamFlag(name) {
   return code ? flagImg(TEAMS[code].f) : '';
 }
 
-function liveTeamPtName(golazoName) {
-  const code = golazoTeamToCode(golazoName);
-  return code ? TEAMS[code].n : (golazoName || '');
-}
-
 async function fetchCazeLive() {
   try {
     const resp = await fetch(`${getLiveBase()}/caze-live`, { cache: 'no-store' });
@@ -710,13 +707,6 @@ async function fetchCazeLive() {
   } catch (e) {
     return null;
   }
-}
-
-function cazeMatchesGame(cazeTitle, homeName, awayName) {
-  const t = normName(cazeTitle);
-  const h = normName(liveTeamPtName(homeName));
-  const a = normName(liveTeamPtName(awayName));
-  return !!h && !!a && t.includes(h) && t.includes(a);
 }
 
 async function fetchMatchDetails(id) {
@@ -833,14 +823,12 @@ function renderLiveGrid(matches) {
     fetchCazeLive().then(caze => {
       if (!caze) return;
       liveOnes.forEach(m => {
-        if (!cazeMatchesGame(caze.title, m.home_team?.name, m.away_team?.name)) return;
         const el = document.getElementById(`caze-embed-${m.id}`);
         if (!el) return;
         el.innerHTML = `
-          <div class="live-embed-title">📺 Assista com a CazéTV</div>
-          <div class="live-embed-frame">
-            <iframe src="https://www.youtube.com/embed/${caze.videoId}?autoplay=0" title="${caze.title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
-          </div>
+          <a class="live-watch-btn" href="https://www.youtube.com/watch?v=${caze.videoId}" target="_blank" rel="noopener">
+            📺 Assistir com a CazéTV no YouTube
+          </a>
         `;
         el.style.display = '';
       });

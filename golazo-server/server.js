@@ -40,7 +40,7 @@ function getCazeLive(res) {
     ytRes.on('data', chunk => { html += chunk; });
     ytRes.on('end', () => {
       const videoIdMatch = html.match(/"videoId":"([A-Za-z0-9_-]{11})"/);
-      const titleMatch = html.match(/<title>([^<]*)<\/title>/);
+      const titleMatch = html.match(/property="og:title" content="([^"]*)"/) || html.match(/<title>([^<]*)<\/title>/);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         status: 'ok',
