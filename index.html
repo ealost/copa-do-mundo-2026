@@ -337,24 +337,18 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
     </div>
   </div>
   <nav>
-    <button class="nav-btn active" onclick="switchTab('grupos')"><span class="nav-icon">⚽</span>Grupos</button>
-    <button class="nav-btn" onclick="switchTab('classificacao')"><span class="nav-icon">📊</span>Classificação</button>
+    <button class="nav-btn active" onclick="switchTab('classificacao')"><span class="nav-icon">📊</span>Classificação</button>
     <button class="nav-btn" onclick="switchTab('live')"><span class="nav-icon">🔴</span>Live Scores</button>
     <button class="nav-btn" onclick="switchTab('jogos')"><span class="nav-icon">📅</span>Jogos</button>
+    <button class="nav-btn" onclick="switchTab('matamata')"><span class="nav-icon">🥊</span>Mata-Mata</button>
     <button class="nav-btn" onclick="switchTab('simulador')"><span class="nav-icon">🏆</span>Simulador</button>
   </nav>
 </header>
 
 <main>
 
-<!-- ==================== GRUPOS ==================== -->
-<section id="s-grupos" class="sec active">
-  <div class="sec-title">Grupos da Primeira Fase</div>
-  <div class="groups-grid" id="groups-grid"></div>
-</section>
-
 <!-- ==================== CLASSIFICAÇÃO ==================== -->
-<section id="s-classificacao" class="sec">
+<section id="s-classificacao" class="sec active">
   <div class="sec-title">Classificação de Momento</div>
   <div class="standings-banner" id="standings-banner"></div>
   <div class="standings-grid" id="standings-grid"></div>
@@ -371,6 +365,18 @@ main{max-width:1400px;margin:0 auto;padding:28px 16px 60px}
 <section id="s-jogos" class="sec">
   <div class="sched-filters" id="sched-filters"></div>
   <div id="sched-list"></div>
+</section>
+
+<!-- ==================== MATA-MATA (PROJEÇÃO REAL) ==================== -->
+<section id="s-matamata" class="sec">
+  <div class="sec-title">Caminho do Mata-Mata</div>
+  <div class="bracket-notice">
+    📊 Projeção atual das 16 avos de final (1º, 2º e os 8 melhores 3º colocados, já considerando a tabela oficial de combinações).
+    <br>A fase de grupos ainda não terminou — os confrontos abaixo podem mudar até a 3ª rodada acabar.
+  </div>
+  <div class="bracket-wrap">
+    <div class="bracket" id="mata-bracket"></div>
+  </div>
 </section>
 
 <!-- ==================== SIMULADOR ==================== -->
@@ -491,20 +497,20 @@ const RAW = [
   ['2026-06-23','14:00','K','por','uzb','NRG Stadium','Houston','C',2,0,[5,0]],
   ['2026-06-23','17:00','L','eng','gha','Gillette Stadium','Boston','T',2,0,[0,0]],
   ['2026-06-23','20:00','L','pan','cro','BMO Field','Toronto','C',2,0,[0,1]],
-  ['2026-06-23','23:00','K','col','cod','Estadio Akron','Guadalajara','S',2,0],
+  ['2026-06-23','23:00','K','col','cod','Estadio Akron','Guadalajara','S',2,0,[1,0]],
   // MD3 (simultaneous)
-  ['2026-06-24','16:00','B','sui','can','BC Place','Vancouver','D',3,1],
-  ['2026-06-24','16:00','B','bih','qat','Lumen Field','Seattle','D',3,1],
-  ['2026-06-24','19:00','C','sco','bra','Hard Rock Stadium','Miami','D',3,1],
-  ['2026-06-24','19:00','C','mar','hai','Mercedes-Benz Stadium','Atlanta','D',3,1],
-  ['2026-06-24','22:00','A','cze','mex','Estadio Azteca','Cidade do México','D',3,1],
-  ['2026-06-24','22:00','A','rsa','kor','Estadio BBVA','Monterrey','D',3,1],
-  ['2026-06-25','17:00','E','ecu','ger','MetLife Stadium','Nova Jersey','D',3,1],
-  ['2026-06-25','17:00','E','cur','civ','Lincoln Financial','Philadelphia','D',3,1],
-  ['2026-06-25','20:00','F','tun','ned','Arrowhead Stadium','Kansas City','D',3,1],
-  ['2026-06-25','20:00','F','jpn','swe','AT&T Stadium','Dallas','D',3,1],
-  ['2026-06-25','23:00','D','tur','usa','SoFi Stadium','Los Angeles','D',3,1],
-  ['2026-06-25','23:00','D','par','aus',"Levi's Stadium",'San Francisco','D',3,1],
+  ['2026-06-24','16:00','B','sui','can','BC Place','Vancouver','D',3,1,[2,1]],
+  ['2026-06-24','16:00','B','bih','qat','Lumen Field','Seattle','D',3,1,[3,1]],
+  ['2026-06-24','19:00','C','sco','bra','Hard Rock Stadium','Miami','D',3,1,[0,3]],
+  ['2026-06-24','19:00','C','mar','hai','Mercedes-Benz Stadium','Atlanta','D',3,1,[4,2]],
+  ['2026-06-24','22:00','A','cze','mex','Estadio Azteca','Cidade do México','D',3,1,[0,3]],
+  ['2026-06-24','22:00','A','rsa','kor','Estadio BBVA','Monterrey','D',3,1,[1,0]],
+  ['2026-06-25','17:00','E','ecu','ger','MetLife Stadium','Nova Jersey','D',3,1,[2,1]],
+  ['2026-06-25','17:00','E','cur','civ','Lincoln Financial','Philadelphia','D',3,1,[0,2]],
+  ['2026-06-25','20:00','F','tun','ned','Arrowhead Stadium','Kansas City','D',3,1,[1,3]],
+  ['2026-06-25','20:00','F','jpn','swe','AT&T Stadium','Dallas','D',3,1,[1,1]],
+  ['2026-06-25','23:00','D','tur','usa','SoFi Stadium','Los Angeles','D',3,1,[3,2]],
+  ['2026-06-25','23:00','D','par','aus',"Levi's Stadium",'San Francisco','D',3,1,[0,0]],
   ['2026-06-26','16:00','I','nor','fra','Gillette Stadium','Boston','D',3,1],
   ['2026-06-26','16:00','I','sen','irq','BMO Field','Toronto','D',3,1],
   ['2026-06-26','21:00','H','uru','esp','Estadio Akron','Guadalajara','D',3,1],
@@ -519,30 +525,32 @@ const RAW = [
   ['2026-06-27','23:00','J','alg','aut','Arrowhead Stadium','Kansas City','D',3,1]
 ];
 
-// Knockout bracket structure
+// Knockout bracket structure — ordem das posições 0-15 escolhida para que o
+// pareamento sequencial (0×1, 2×3, ...) reproduza exatamente as ligações
+// oficiais entre as fases (jogo 73-88 → oitavas 89-96 → quartas 97-100 → semis 101-102).
 const R32 = [
-  {id:'r1', date:'28 Jun',time:'16:00',lbl:'2º A × 2º B', slots:['2A','2B']},
-  {id:'r2', date:'29 Jun',time:'14:00',lbl:'1º C × 2º F', slots:['1C','2F']},
-  {id:'r3', date:'29 Jun',time:'17:30',lbl:'1º E × 3º Melhor', slots:['1E','3X']},
-  {id:'r4', date:'29 Jun',time:'22:00',lbl:'2º C × 1º F', slots:['2C','1F']},
-  {id:'r5', date:'30 Jun',time:'14:00',lbl:'2º E × 2º I', slots:['2E','2I']},
-  {id:'r6', date:'30 Jun',time:'18:00',lbl:'1º I × 3º Melhor', slots:['1I','3X']},
-  {id:'r7', date:'30 Jun',time:'22:00',lbl:'1º A × 3º Melhor', slots:['1A','3X']},
-  {id:'r8', date:'1 Jul',time:'13:00',lbl:'1º L × 3º Melhor', slots:['1L','3X']},
-  {id:'r9', date:'1 Jul',time:'17:00',lbl:'1º G × 3º Melhor', slots:['1G','3X']},
-  {id:'r10',date:'1 Jul',time:'21:00',lbl:'1º D × 3º Melhor', slots:['1D','3X']},
-  {id:'r11',date:'2 Jul',time:'16:00',lbl:'1º H × 2º J', slots:['1H','2J']},
-  {id:'r12',date:'2 Jul',time:'20:00',lbl:'2º K × 2º L', slots:['2K','2L']},
-  {id:'r13',date:'3 Jul',time:'00:00',lbl:'1º B × 3º Melhor', slots:['1B','3X']},
-  {id:'r14',date:'3 Jul',time:'15:00',lbl:'2º D × 2º G', slots:['2D','2G']},
-  {id:'r15',date:'3 Jul',time:'19:00',lbl:'1º J × 2º H', slots:['1J','2H']},
-  {id:'r16',date:'3 Jul',time:'22:30',lbl:'1º K × 3º Melhor', slots:['1K','3X']}
+  {id:'m74', date:'29 Jun',time:'17:30',lbl:'1º E × 3º Melhor', slots:['1E','3X']},
+  {id:'m77', date:'30 Jun',time:'18:00',lbl:'1º I × 3º Melhor', slots:['1I','3X']},
+  {id:'m73', date:'28 Jun',time:'16:00',lbl:'2º A × 2º B', slots:['2A','2B']},
+  {id:'m75', date:'29 Jun',time:'22:00',lbl:'1º F × 2º C', slots:['1F','2C']},
+  {id:'m83', date:'2 Jul', time:'20:00',lbl:'2º K × 2º L', slots:['2K','2L']},
+  {id:'m84', date:'2 Jul', time:'16:00',lbl:'1º H × 2º J', slots:['1H','2J']},
+  {id:'m81', date:'1 Jul', time:'21:00',lbl:'1º D × 3º Melhor', slots:['1D','3X']},
+  {id:'m82', date:'1 Jul', time:'17:00',lbl:'1º G × 3º Melhor', slots:['1G','3X']},
+  {id:'m76', date:'29 Jun',time:'14:00',lbl:'1º C × 2º F', slots:['1C','2F']},
+  {id:'m78', date:'30 Jun',time:'14:00',lbl:'2º E × 2º I', slots:['2E','2I']},
+  {id:'m79', date:'30 Jun',time:'22:00',lbl:'1º A × 3º Melhor', slots:['1A','3X']},
+  {id:'m80', date:'1 Jul', time:'13:00',lbl:'1º L × 3º Melhor', slots:['1L','3X']},
+  {id:'m86', date:'3 Jul', time:'19:00',lbl:'1º J × 2º H', slots:['1J','2H']},
+  {id:'m88', date:'3 Jul', time:'15:00',lbl:'2º D × 2º G', slots:['2D','2G']},
+  {id:'m85', date:'3 Jul', time:'00:00',lbl:'1º B × 3º Melhor', slots:['1B','3X']},
+  {id:'m87', date:'3 Jul', time:'22:30',lbl:'1º K × 3º Melhor', slots:['1K','3X']}
 ];
 
 const R16_INFO = [
   {date:'4 Jul',time:'14:00'},{date:'4 Jul',time:'18:00'},
-  {date:'5 Jul',time:'17:00'},{date:'5 Jul',time:'21:00'},
   {date:'6 Jul',time:'16:00'},{date:'6 Jul',time:'21:00'},
+  {date:'5 Jul',time:'17:00'},{date:'5 Jul',time:'21:00'},
   {date:'7 Jul',time:'13:00'},{date:'7 Jul',time:'17:00'}
 ];
 const QF_INFO = [
@@ -608,6 +616,7 @@ function switchTab(tab) {
   });
   if (tab === 'simulador') renderSimBracket();
   if (tab === 'classificacao') renderStandings();
+  if (tab === 'matamata') renderMataMata();
   if (tab === 'live') startLivePolling(); else stopLivePolling();
 }
 
@@ -859,41 +868,127 @@ function switchSimTab(tab) {
 // ===========================
 // GROUPS SECTION
 // ===========================
-function renderGroups() {
-  const grid = document.getElementById('groups-grid');
-  const groupNames = {
-    A:'México, Áf. do Sul, Coreia do Sul, Rep. Tcheca',
-    B:'Canadá, Bósnia, Catar, Suíça',
-    C:'Brasil, Marrocos, Haiti, Escócia',
-    D:'EUA, Paraguai, Austrália, Turquia',
-    E:'Alemanha, Curaçao, Costa do Marfim, Equador',
-    F:'Holanda, Japão, Suécia, Tunísia',
-    G:'Bélgica, Egito, Irã, Nova Zelândia',
-    H:'Espanha, Cabo Verde, Arábia Saudita, Uruguai',
-    I:'França, Senegal, Iraque, Noruega',
-    J:'Argentina, Argélia, Áustria, Jordânia',
-    K:'Portugal, RD Congo, Uzbequistão, Colômbia',
-    L:'Inglaterra, Croácia, Gana, Panamá'
-  };
-  grid.innerHTML = Object.entries(GROUPS).map(([g, teams]) => `
-    <div class="grp-card">
-      <div class="grp-hdr">
-        <div class="grp-letter">${g}</div>
-        <div class="grp-hdr-info">
-          <span>Grupo</span>
-          <strong>4 Seleções</strong>
-        </div>
-      </div>
-      <div class="grp-body">
-        ${teams.map(t => `
-          <div class="team-row">
-            ${flagImg(TEAMS[t].f)}
-            <span class="team-name">${TEAMS[t].n}</span>
-          </div>
-        `).join('')}
+// ===========================
+// MATA-MATA (PROJEÇÃO REAL, A PARTIR DA CLASSIFICAÇÃO)
+// ===========================
+function computeBestThirds() {
+  const thirds = Object.keys(GROUPS).map(g => ({ ...computeStandings(g)[2], g }));
+  return thirds.slice().sort((x, y) =>
+    y.p - x.p || (y.gp - y.gc) - (x.gp - x.gc) || y.gp - x.gp || TEAMS[x.t].n.localeCompare(TEAMS[y.t].n)
+  ).slice(0, 8);
+}
+
+// Tabela oficial: cada vaga de "3º melhor" só pode ser ocupada por um terceiro
+// colocado de um subconjunto específico de grupos (evita repetir confronto da
+// fase de grupos / time do mesmo grupo do adversário direto).
+const THIRD_SLOT_ELIGIBLE = {
+  m74: ['A','B','C','D','F'],
+  m77: ['C','D','F','G','H'],
+  m81: ['B','E','F','I','J'],
+  m82: ['A','E','H','I','J'],
+  m79: ['C','E','F','H','I'],
+  m80: ['E','H','I','J','K'],
+  m85: ['E','F','G','I','J'],
+  m87: ['D','E','I','J','L'],
+};
+
+function assignThirdsToSlots(thirds) {
+  const slotIds = Object.keys(THIRD_SLOT_ELIGIBLE);
+  const assignment = {};
+  function backtrack(idx, used) {
+    if (idx === thirds.length) return true;
+    const team = thirds[idx];
+    const eligible = slotIds.filter(s => THIRD_SLOT_ELIGIBLE[s].includes(team.g) && !used.has(s));
+    for (const s of eligible) {
+      used.add(s);
+      assignment[s] = team.t;
+      if (backtrack(idx + 1, used)) return true;
+      used.delete(s);
+      delete assignment[s];
+    }
+    return false;
+  }
+  backtrack(0, new Set());
+  return assignment;
+}
+
+// Snapshot do chaveamento das 16-avos conforme publicado pela BBC (já aplica
+// a tabela oficial completa de combinações de 3os colocados, que não é
+// reproduzível com confiança a partir de busca na web).
+const R32_CURRENT = [
+  { t1:'ger', t2:'par', lbl:'1º E × 3º Melhor', date:'29 Jun', time:'21:30' },
+  { t1:'fra', t2:'swe', lbl:'1º I × 3º Melhor', date:'30 Jun', time:'22:00' },
+  { t1:'rsa', t2:'can', lbl:'2º A × 2º B',       date:'28 Jun', time:'20:00' },
+  { t1:'ned', t2:'mar', lbl:'1º F × 2º C',       date:'30 Jun', time:'02:00' },
+  { t1:'por', t2:'gha', lbl:'2º K × 2º L',       date:'3 Jul',  time:'00:00' },
+  { t1:'esp', t2:'aut', lbl:'1º H × 2º J',       date:'2 Jul',  time:'20:00' },
+  { t1:'usa', t2:'bih', lbl:'1º D × 3º Melhor', date:'2 Jul',  time:'01:00' },
+  { t1:'egy', t2:'kor', lbl:'1º G × 3º Melhor', date:'1 Jul',  time:'21:00' },
+  { t1:'bra', t2:'jpn', lbl:'1º C × 2º F',       date:'29 Jun', time:'18:00' },
+  { t1:'civ', t2:'nor', lbl:'2º E × 2º I',       date:'30 Jun', time:'18:00' },
+  { t1:'mex', t2:'ecu', lbl:'1º A × 3º Melhor', date:'1 Jul',  time:'02:00' },
+  { t1:'eng', t2:'sen', lbl:'1º L × 3º Melhor', date:'1 Jul',  time:'17:00' },
+  { t1:'arg', t2:'uru', lbl:'1º J × 2º H',       date:'3 Jul',  time:'23:00' },
+  { t1:'aus', t2:'irn', lbl:'2º D × 2º G',       date:'3 Jul',  time:'19:00' },
+  { t1:'sui', t2:'alg', lbl:'1º B × 3º Melhor', date:'3 Jul',  time:'04:00' },
+  { t1:'col', t2:'cro', lbl:'1º K × 3º Melhor', date:'4 Jul',  time:'02:30' },
+];
+
+function computeR32Real() {
+  return R32_CURRENT;
+}
+
+function renderMmSlot(teamId) {
+  if (!teamId) {
+    return `<div class="bk-slot empty"><div class="bk-flag-empty"></div><span class="bk-team-name">A definir</span></div>`;
+  }
+  const t = TEAMS[teamId];
+  return `
+    <div class="bk-slot">
+      ${flagImg(t.f, 'bk-flag', 32)}
+      <span class="bk-team-name">${t.n}</span>
+    </div>
+  `;
+}
+
+function renderMmMatch(m) {
+  return `
+    <div class="bk-match">
+      ${renderMmSlot(m.t1)}
+      ${renderMmSlot(m.t2)}
+      <div class="bk-time">${m.date} · ${m.time}</div>
+    </div>
+  `;
+}
+
+function renderMataMata() {
+  const el = document.getElementById('mata-bracket');
+  const r32Pairs = computeR32Real();
+
+  const rounds = [
+    { label: '16 Avos', dates: '28 Jun – 3 Jul', matches: r32Pairs },
+    { label: 'Oitavas', dates: '4 – 7 Jul', matches: R16_INFO.map(info => ({ t1: null, t2: null, date: info.date, time: info.time })) },
+    { label: 'Quartas', dates: '9 – 11 Jul', matches: QF_INFO.map(info => ({ t1: null, t2: null, date: info.date, time: info.time })) },
+    { label: 'Semis', dates: '14 – 15 Jul', matches: SF_INFO.map(info => ({ t1: null, t2: null, date: info.date, time: info.time })) },
+  ];
+
+  el.innerHTML = rounds.map((round, ri) => `
+    <div class="bracket-col">
+      <div class="bracket-col-title">${round.label}</div>
+      <div class="bracket-col-dates">${round.dates}</div>
+      <div class="bk-matches" style="gap:${ri === 0 ? '4px' : ri === 1 ? '28px' : ri === 2 ? '80px' : '200px'}">
+        ${round.matches.map(m => renderMmMatch(m)).join('')}
       </div>
     </div>
-  `).join('');
+  `).join('') + `
+    <div class="bracket-col" style="flex:.8">
+      <div class="bracket-col-title">Final</div>
+      <div class="bracket-col-dates">${FINAL_INFO.date}</div>
+      <div class="bk-matches" style="justify-content:center;gap:0">
+        ${renderMmMatch({ t1: null, t2: null, date: FINAL_INFO.date, time: FINAL_INFO.time })}
+      </div>
+    </div>
+  `;
 }
 
 // ===========================
@@ -1394,12 +1489,11 @@ function resetBracket() {
 // ===========================
 // INIT
 // ===========================
-renderGroups();
 renderScheduleFilters();
 renderScheduleList();
 renderStandings();
 renderSimGroups();
-switchTab('grupos');
+switchTab('classificacao');
 </script>
 </body>
 </html>
